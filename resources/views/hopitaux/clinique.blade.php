@@ -1,7 +1,10 @@
 @extends('hopitaux.app')
 @section('content')
-<h1>Liste des cliniques</h1>
-  <table>
+    <h1>Liste des cliniques</h1>
+    <form action="{{ route('imprimerPDFClinique') }}" target="_blank">
+        <button class=" btn btn-primary">Imprimer</button>
+    </form>
+    <table>
         <thead>
             <tr>
                 <th>N°</th>

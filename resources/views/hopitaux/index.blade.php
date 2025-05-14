@@ -1,10 +1,10 @@
 @extends('hopitaux.app')
 @section('content')
     <h1>Recherche</h1>
-    <form class=" row" action="{{ route('hopitaux') }}" method="GET">
+    <form class=" row" action="{{ route('search_hopitaux') }}" method="GET">
         @csrf
         <div class="col-md-4">
-            <select class="form-select name="etablissement" id="">
+            <select class="form-select" name="etablissement" id="">
                 <option value="">Choix</option>
                 <option value="Hopitaux">Hopitaux</option>
                 <option value="Cliniques">Cliniques</option>

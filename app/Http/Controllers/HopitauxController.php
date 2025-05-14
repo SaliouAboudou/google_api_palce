@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Etablissement;
 use Illuminate\Http\Request;
 
+use Dompdf\Dompdf;
+use Dompdf\Options;
+
 use Illuminate\Support\Facades\Http;
 
 class HopitauxController extends Controller
@@ -25,14 +28,15 @@ class HopitauxController extends Controller
 
     public function hopitaux()
     {
-        return view('hopitaux.hopitaux');
+         $hopitaux = Etablissement::whereRaw("LOWER(name) LIKE '%hopitaux%' OR LOWER(name) LIKE '%hopital%'")->get();
+        return view('hopitaux.hopitaux', ['hopitaux' => $hopitaux]);
     }
 
 
     public function listeHopitaux(Request $request)
     {
 
-        $etablissement = $request->input('etablissement', '500 clinique');
+        $etablissement = $request->input('etablissement', 'Hopital');
         $departement = $request->input('departement', 'Atlantique');
 
 
@@ -40,6 +44,8 @@ class HopitauxController extends Controller
         $apiKey = config('services.google_places.api_key');
         $query = "$etablissement de $departement du Bénin";
         // $query = 'clinique du departement Zou du benin';
+
+        // dd($query);
 
         $hopitaux = [];
         $nextPageToken = null;
@@ -101,5 +107,72 @@ class HopitauxController extends Controller
         } while ($nextPageToken && $iteration < 4);
 
         return view('hopitaux.index', compact('hopitaux'));
+    }
+
+
+
+    public function imprimerPDFClinique()
+    {
+        // Configuration des options de Dompdf
+        $options = new Options();
+        $options->set('chroot', realpath('')); // Pour sécuriser l'accès aux fichiers
+        $options->set('isRemoteEnabled', true); // Pour charger des images externes (CDN, etc.)
+
+        $cliniques = Etablissement::whereRaw("LOWER(name) LIKE '%clinique%' OR LOWER(name) LIKE '%clinical%'")->get();
+        // Générer le contenu HTML à partir d'une vue Laravel
+        $htmlContent = view('hopitaux.documents.imprimerPDFClinique', ['cliniques' => $cliniques])->render();
+
+        // Créer l'instance de Dompdf
+        $dompdf = new Dompdf($options);
+
+        // Charger le HTML
+        $dompdf->loadHtml($htmlContent);
+
+        // Configurer la taille et l'orientation
+        $dompdf->setPaper('A4', 'portrait');
+
+        // Rendu du PDF
+        $dompdf->render();
+
+        // Nom du fichier PDF
+        $prefixe = 'cliniques';
+        $date_et_heure = date('Ymd_His');
+        $nom_pdf = $prefixe . '_' . $date_et_heure . '.pdf';
+
+        // Retourner le PDF dans le navigateur sans téléchargement
+        return $dompdf->stream($nom_pdf, ['Attachment' => false]);
+    }
+
+
+     public function imprimerPDFHopitaux()
+    {
+        // Configuration des options de Dompdf
+        $options = new Options();
+        $options->set('chroot', realpath('')); // Pour sécuriser l'accès aux fichiers
+        $options->set('isRemoteEnabled', true); // Pour charger des images externes (CDN, etc.)
+
+        $hopitaux = Etablissement::whereRaw("LOWER(name) LIKE '%hopital%' OR LOWER(name) LIKE '%hôpital%'")->get();
+        // Générer le contenu HTML à partir d'une vue Laravel
+        $htmlContent = view('hopitaux.documents.imprimerPDFHopitaux', ['hopitaux' => $hopitaux])->render();
+
+        // Créer l'instance de Dompdf
+        $dompdf = new Dompdf($options);
+
+        // Charger le HTML
+        $dompdf->loadHtml($htmlContent);
+
+        // Configurer la taille et l'orientation
+        $dompdf->setPaper('A4', 'portrait');
+
+        // Rendu du PDF
+        $dompdf->render();
+
+        // Nom du fichier PDF
+        $prefixe = 'cliniques';
+        $date_et_heure = date('Ymd_His');
+        $nom_pdf = $prefixe . '_' . $date_et_heure . '.pdf';
+
+        // Retourner le PDF dans le navigateur sans téléchargement
+        return $dompdf->stream($nom_pdf, ['Attachment' => false]);
     }
 }
