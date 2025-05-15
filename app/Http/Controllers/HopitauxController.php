@@ -28,7 +28,10 @@ class HopitauxController extends Controller
 
     public function hopitaux()
     {
-         $hopitaux = Etablissement::whereRaw("LOWER(name) LIKE '%hopitaux%' OR LOWER(name) LIKE '%hopital%'")->get();
+        $hopitaux = Etablissement::whereRaw("
+                LOWER(name) NOT LIKE '%clinique%'
+                AND LOWER(name) NOT LIKE '%clinical%'
+            ")->get();
         return view('hopitaux.hopitaux', ['hopitaux' => $hopitaux]);
     }
 
@@ -144,14 +147,17 @@ class HopitauxController extends Controller
     }
 
 
-     public function imprimerPDFHopitaux()
+    public function imprimerPDFHopitaux()
     {
         // Configuration des options de Dompdf
         $options = new Options();
         $options->set('chroot', realpath('')); // Pour sécuriser l'accès aux fichiers
         $options->set('isRemoteEnabled', true); // Pour charger des images externes (CDN, etc.)
 
-        $hopitaux = Etablissement::whereRaw("LOWER(name) LIKE '%hopital%' OR LOWER(name) LIKE '%hôpital%'")->get();
+        $hopitaux = Etablissement::whereRaw("
+                LOWER(name) NOT LIKE '%clinique%'
+                AND LOWER(name) NOT LIKE '%clinical%'
+            ")->get();
         // Générer le contenu HTML à partir d'une vue Laravel
         $htmlContent = view('hopitaux.documents.imprimerPDFHopitaux', ['hopitaux' => $hopitaux])->render();
 
@@ -168,7 +174,7 @@ class HopitauxController extends Controller
         $dompdf->render();
 
         // Nom du fichier PDF
-        $prefixe = 'cliniques';
+        $prefixe = 'hopitaux';
         $date_et_heure = date('Ymd_His');
         $nom_pdf = $prefixe . '_' . $date_et_heure . '.pdf';
 

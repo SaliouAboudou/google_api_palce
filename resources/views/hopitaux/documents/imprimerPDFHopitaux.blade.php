@@ -30,7 +30,7 @@
 </head>
 
 <body>
-    <h1>Liste des cliniques</h1>
+    <h1>Liste des hopitaux</h1>
     <table>
         <thead>
             <tr>
